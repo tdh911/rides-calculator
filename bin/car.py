@@ -8,13 +8,14 @@ class Car:
         self.departure_time = driver.earliest_departure
 
     def add_person(self, person):
-        if is_full:
-            return None
+        if self.is_full:
+            return False
         
-        # TODO: Properly implement time
         if person.earliest_departure > self.departure_time:
             self.departure_time = person.earliest_departure
 
-        return self.departure_time
+        self.passengers.append(person)
+        self.is_full = self.seats == len(self.passengers)
+        return True
 
 

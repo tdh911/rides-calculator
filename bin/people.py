@@ -8,7 +8,8 @@ class Person:
         self.phone = phone
         self.email = email
         # Time will be represented as a float
-        self.earliest_departure = _attempt_to_parse_time(earliest_departure.strip())
+        self.earliest_departure = self._attempt_to_parse_time(earliest_departure.strip())
+        self.raw_time = earliest_departure
 
     # Time represented as a float
     # e.g. 12PM = 12.0, 1PM = 13.0, 1:30PM = 13.5
