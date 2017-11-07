@@ -1,4 +1,3 @@
-import pandas as pd
 import openpyxl 
 from people import Person
 from car import Car
@@ -21,7 +20,7 @@ def format_departure_time(time_in_float):
             return "%d:%d PM" % (hour, minute)
 
 
-def write_to_excel(workbook_name, cars, unseated_passengers):
+def write_to_excel(cars, unseated_passengers):
     book = openpyxl.Workbook()
     sheet = book.create_sheet(title="Rides List")
     row = 1
@@ -59,23 +58,35 @@ def write_to_excel(workbook_name, cars, unseated_passengers):
 
 def main():
     excel_book = raw_input("Type out the excel worksheet filename: ")
-    attendees = pd.read_excel(excel_book, sheetname="reg list")
+    attendees = openpyxl.load_workbook(filename=excel_book, data_only=True)["reg list"]
+
+    max_row = attendees.max_row
+    max_column = attendees.max_column
+
+    # Get headers for flexibility
+    headers = {}
+    for idx in range(1, max_column):
+        val = attendees.cell(column=idx, row=1).value
+        headers[val] = idx 
 
     # Construct unsorted list of cars and general passengers
     cars = []
     passengers = []
-    for i in attendees.index:
-        first = attendees["first"][i].encode("unicode-escape")
-        last = attendees["last"][i].encode("unicode-escape")
-        area = str(attendees["area"][i])
-        email = str(attendees["email"][i])
-        phone = str(attendees["phone"][i])
-        departure_time = str(attendees["earliest departure time"][i])
+    for attendee in range(2, max_row):
+        if attendees.cell(column=1, row=attendee).value == None:
+            break
+
+        first = attendees.cell(column=headers["first"], row=attendee).value.encode("unicode-escape")
+        last = attendees.cell(column=headers["last"], row=attendee).value.encode("unicode-escape")
+        area = str(attendees.cell(column=headers["area"], row=attendee).value)
+        email = str(attendees.cell(column=headers["email"], row=attendee).value)
+        phone = str(attendees.cell(column=headers["phone"], row=attendee).value)
+        departure_time= str(attendees.cell(column=headers["earliest departure time"], row=attendee).value)
 
         passenger = Person(first, last, area, phone, email, departure_time)
-        if not attendees["car seatbelts"][i] == 0:
-            seats = int(attendees["car seatbelts"][i])
-            car = Car(passenger, seats)
+        seatbelts = int(attendees.cell(column=headers["car seatbelts"], row=attendee).value)
+        if not seatbelts == 0:
+            car = Car(passenger, seatbelts)
             cars.append(car)
         else:
             passengers.append(passenger)
@@ -98,7 +109,7 @@ def main():
             break
 
     # Write the cars to an excel, special section for unseated passengers
-    write_to_excel(excel_book, cars, passengers)
+    write_to_excel(cars, passengers)
 
 if __name__ == "__main__":
     main()
